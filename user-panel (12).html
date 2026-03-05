@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 User Panel – Free Fire Tournament</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--red:#ff1a1a;--gold:#ffd700;--bg:#050505;--bg2:#0d0d0d;--bg3:#111;--text:#fff;--sub:#777;--green:#00ff88;--blue:#00aaff}
+body{background:var(--bg);font-family:'Rajdhani',sans-serif;color:var(--text);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 75% 10%,rgba(255,26,26,.05),transparent 50%);pointer-events:none;z-index:0}
+.grid{position:fixed;inset:0;background-image:linear-gradient(rgba(255,26,26,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,26,26,.018) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+
+/* ===== SCREENS ===== */
+.screen{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
+.screen.hide{display:none}
+
+/* No Firebase */
+.nofb-box{background:var(--bg2);border:1px solid #2a0000;border-radius:18px;padding:30px;width:100%;max-width:360px;text-align:center}
+.nofb-box .ico{font-size:52px;display:block;margin-bottom:10px;animation:fl 1.5s infinite alternate}
+@keyframes fl{0%{filter:drop-shadow(0 0 8px #f60)}100%{filter:drop-shadow(0 0 20px #ff1a1a)}}
+.nofb-box h2{font-family:'Orbitron',monospace;font-size:17px;color:var(--red);letter-spacing:2px;margin-bottom:8px}
+.nofb-box p{color:var(--sub);font-size:13px;line-height:1.7;margin-bottom:20px;font-family:'Share Tech Mono',monospace}
+.refresh-hint{margin-top:14px;font-size:11px;color:#2a2a2a;font-family:'Share Tech Mono',monospace;cursor:pointer}
+.refresh-hint:hover{color:var(--sub)}
+
+/* Auth */
+.auth-box{background:var(--bg2);border:1px solid #1a0000;border-radius:18px;padding:28px;width:100%;max-width:350px}
+.auth-logo{text-align:center;margin-bottom:20px}
+.auth-logo span{font-size:36px;display:block;margin-bottom:6px;animation:fl 1.5s infinite alternate}
+.auth-logo h1{font-family:'Orbitron',monospace;font-size:14px;color:var(--red);letter-spacing:2px}
+.atabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:#0a0a0a;padding:4px;border-radius:9px;margin-bottom:16px}
+.atab{padding:9px;background:transparent;border:none;border-radius:7px;color:var(--sub);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.2s}
+.atab.active{background:linear-gradient(135deg,#ff1a1a,#880000);color:#fff}
+
+/* Ban */
+.ban-box{max-width:320px;text-align:center}
+.ban-box .bi{font-size:80px;margin-bottom:16px}
+.ban-box h2{font-family:'Orbitron',monospace;font-size:20px;color:var(--red);margin-bottom:10px}
+.ban-box p{color:var(--sub);line-height:1.7;font-size:14px}
+
+/* ===== MAIN APP ===== */
+.app{position:relative;z-index:1;max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:68px;display:none}
+
+/* Topbar */
+.topbar{background:var(--bg2);border-bottom:1px solid #1a1a1a;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.tb-l{display:flex;align-items:center;gap:8px}
+.tb-ico{font-size:20px;animation:fl 1.5s infinite alternate}
+.tb-title{font-family:'Orbitron',monospace;font-size:12px;color:var(--red);letter-spacing:1px}
+.wcoin{background:linear-gradient(135deg,#1a1400,#252000);border:1px solid rgba(255,215,0,.2);border-radius:20px;padding:5px 13px;font-family:'Orbitron',monospace;font-size:12px;color:var(--gold);display:flex;align-items:center;gap:5px}
+.fbi{width:7px;height:7px;border-radius:50%;background:#333}
+.fbi.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+
+/* Pages */
+.page{display:none;padding:16px}
+.page.active{display:block;animation:fu .3s ease}
+@keyframes fu{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.ptitle{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;letter-spacing:1px;margin-bottom:16px}
+
+/* Bottom nav */
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--bg2);border-top:1px solid #1a1a1a;display:grid;grid-template-columns:repeat(5,1fr);z-index:50}
+.nbtn{padding:10px 6px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--sub);font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;transition:.2s}
+.nbtn .ni{font-size:18px}
+.nbtn.active{color:var(--red)}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid #1a1a1a;border-radius:13px;padding:16px;margin-bottom:13px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ff1a1a,transparent)}
+.ctitle{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--red);letter-spacing:2px;margin-bottom:13px}
+
+/* Form fields */
+.field{margin-bottom:13px}
+.field label{display:block;font-size:10px;font-weight:600;color:var(--sub);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;font-family:'Share Tech Mono',monospace}
+.field input,.field select{width:100%;background:var(--bg3);border:1px solid #1a1a1a;border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;transition:.3s}
+.field input:focus,.field select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(255,26,26,.08)}
+
+/* Buttons */
+.btn{padding:11px 18px;border:none;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:7px}
+.btn-red{background:linear-gradient(135deg,#ff1a1a,#880000);color:#fff;box-shadow:0 3px 12px rgba(255,26,26,.25)}
+.btn-red:hover{transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1px solid var(--red);color:var(--red)}
+.btn-full{width:100%;justify-content:center;margin-top:7px}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* Alerts */
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;display:none;align-items:center;gap:8px;margin:9px 0}
+.alert.show{display:flex;animation:fu .3s}
+.a-ok{background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.25);color:var(--green)}
+.a-err{background:rgba(255,26,26,.07);border:1px solid rgba(255,26,26,.25);color:#ff6666}
+.a-inf{background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.25);color:var(--gold)}
+
+/* Match card */
+.mcard{background:var(--bg2);border:1px solid #1a1a1a;border-radius:12px;padding:15px;margin-bottom:11px;position:relative;overflow:hidden}
+.mcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ff1a1a,transparent)}
+.mh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px}
+.mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.ms{background:var(--bg3);border-radius:7px;padding:8px;text-align:center}
+.ms .v{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;margin-bottom:2px}
+.ms .l{font-size:9px;color:var(--sub);font-family:'Share Tech Mono',monospace}
+.mfoot{display:flex;justify-content:space-between;align-items:center;margin-top:11px;padding-top:9px;border-top:1px solid #111;font-size:11px;color:var(--sub);font-family:'Share Tech Mono',monospace}
+
+/* Badge */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-family:'Share Tech Mono',monospace}
+.bg{background:rgba(0,255,136,.12);color:var(--green);border:1px solid rgba(0,255,136,.25)}
+.br{background:rgba(255,26,26,.12);color:#ff6666;border:1px solid rgba(255,26,26,.25)}
+.bb{background:rgba(0,170,255,.12);color:var(--blue);border:1px solid rgba(0,170,255,.25)}
+.by{background:rgba(255,215,0,.12);color:var(--gold);border:1px solid rgba(255,215,0,.25)}
+
+/* Profile */
+.phdr{background:linear-gradient(135deg,#1a0000,#0d0d0d);border:1px solid #2a0000;border-radius:15px;padding:20px;text-align:center;margin-bottom:16px}
+.av{width:62px;height:62px;border-radius:50%;background:linear-gradient(135deg,#ff1a1a,#880000);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 10px;box-shadow:0 0 16px rgba(255,26,26,.3)}
+.pn{font-family:'Orbitron',monospace;font-size:16px;font-weight:900}
+.pg{color:var(--gold);font-size:13px;margin-top:3px}
+.pu{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--sub);margin-top:2px}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}
+.ps{background:var(--bg3);border-radius:9px;padding:11px;text-align:center}
+.ps .v{font-family:'Orbitron',monospace;font-size:17px;font-weight:900;color:var(--red)}
+.ps .l{font-size:10px;color:var(--sub);font-family:'Share Tech Mono',monospace;margin-top:2px}
+
+/* Deposit method */
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px}
+.mc{background:var(--bg3);border:2px solid #1a1a1a;border-radius:10px;padding:12px;cursor:pointer;text-align:center;transition:.2s;font-size:13px;font-weight:600}
+.mc.sel{border-color:var(--red);background:rgba(255,26,26,.07)}
+.mc .mi{font-size:20px;margin-bottom:4px}
+.mnum{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--sub);margin-top:3px}
+
+/* Txn */
+.txn{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #111}
+.txn:last-child{border-bottom:none}
+.txnl{display:flex;gap:10px;align-items:center}
+.tico{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="grid"></div>
+
+<!-- NO FIREBASE -->
+<div class="screen" id="scNofb">
+  <div class="nofb-box">
+    <span class="ico">🔥</span>
+    <h2>FIREBASE NOT SET</h2>
+    <p>App use karne ke liye pehle <strong style="color:var(--gold)">Firebase Panel</strong> se Firebase config add karo.</p>
+    <button class="btn btn-red" style="margin:0 auto;display:flex" onclick="window.open('firebase-panel.html','_blank')">🔥 FIREBASE PANEL OPEN KARO</button>
+    <div class="refresh-hint" onclick="location.reload()">↻ Firebase add kar liya? Yahan click karo</div>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div class="screen hide" id="scAuth">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span>🎮</span>
+      <h1>FREE FIRE TOURNAMENT</h1>
+    </div>
+    <div class="atabs">
+      <button class="atab active" id="tabLogin" onclick="switchTab('login')">LOGIN</button>
+      <button class="atab" id="tabReg" onclick="switchTab('reg')">REGISTER</button>
+    </div>
+
+    <!-- Login form -->
+    <div id="fLogin">
+      <div class="field"><label>Email</label><input type="email" id="lEmail" placeholder="user@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="lPass" placeholder="••••••••"></div>
+      <button class="btn btn-red btn-full" onclick="doLogin()">🔐 LOGIN</button>
+      <div class="alert a-err" id="lErr">❌ Invalid email or password.</div>
+    </div>
+
+    <!-- Register form -->
+    <div id="fReg" style="display:none">
+      <div class="field"><label>Your Name</label><input type="text" id="rName" placeholder="Ahmed Khan"></div>
+      <div class="field"><label>In-Game Name</label><input type="text" id="rGame" placeholder="AK_FIRE_99"></div>
+      <div class="field"><label>Email</label><input type="email" id="rEmail" placeholder="user@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="rPass" placeholder="Min 6 chars"></div>
+      <button class="btn btn-red btn-full" onclick="doRegister()">📝 REGISTER</button>
+      <div class="alert a-err" id="rErr"></div>
+      <div class="alert a-ok"  id="rOk">✅ Account created! Logging in...</div>
+    </div>
+  </div>
+</div>
+
+<!-- BAN -->
+<div class="screen hide" id="scBan">
+  <div class="ban-box">
+    <div class="bi">🚫</div>
+    <h2>ACCOUNT BANNED</h2>
+    <p>Aapka account ban kar diya gaya hai.<br><br>Support se contact karen:<br><span id="banNum" style="color:var(--red);font-family:'Share Tech Mono',monospace;font-size:16px">—</span></p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="mainApp">
+
+  <div class="topbar">
+    <div class="tb-l">
+      <span class="tb-ico">🔥</span>
+      <span class="tb-title">FF TOURNAMENT</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="fbi" id="fbInd"></div>
+      <div class="wcoin">🪙 <span id="wNum">0</span></div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="page active" id="pHome">
+    <div class="ptitle">🏆 TOURNAMENTS</div>
+    <div style="display:flex;gap:7px;margin-bottom:14px;overflow-x:auto;padding-bottom:3px">
+      <button class="badge bb" onclick="filterM('all')" style="cursor:pointer;padding:6px 14px;border:none;font-size:11px">All</button>
+      <button class="badge" onclick="filterM('Solo')" style="cursor:pointer;padding:6px 14px;border:none;font-size:11px;background:#1a1a1a;color:#555">Solo</button>
+      <button class="badge" onclick="filterM('Duo')" style="cursor:pointer;padding:6px 14px;border:none;font-size:11px;background:#1a1a1a;color:#555">Duo</button>
+      <button class="badge" onclick="filterM('Squad')" style="cursor:pointer;padding:6px 14px;border:none;font-size:11px;background:#1a1a1a;color:#555">Squad</button>
+    </div>
+    <div id="matchList">
+      <div style="text-align:center;padding:50px 16px;color:var(--sub)">
+        <div style="font-size:36px;margin-bottom:10px">🎮</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:12px">Koi match nahi hai.<br>Admin se matches add karwao.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WALLET -->
+  <div class="page" id="pWallet">
+    <div class="ptitle">💰 WALLET</div>
+    <div style="background:linear-gradient(135deg,#1a0000,#0d0d0d);border:1px solid #2a0000;border-radius:15px;padding:24px;text-align:center;margin-bottom:16px">
+      <div style="font-size:11px;color:var(--sub);font-family:'Share Tech Mono',monospace;letter-spacing:1px;margin-bottom:6px">TOTAL BALANCE</div>
+      <div style="font-family:'Orbitron',monospace;font-size:36px;font-weight:900;color:var(--gold)">🪙 <span id="bigW">0</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <button class="btn btn-red" onclick="showWS('dep')" style="justify-content:center">💳 Deposit</button>
+      <button class="btn btn-outline" onclick="showWS('wit')" style="justify-content:center">💸 Withdraw</button>
+    </div>
+
+    <!-- Deposit -->
+    <div class="card" id="depSec" style="display:none">
+      <div class="ctitle">💳 DEPOSIT</div>
+      <div class="mg">
+        <div class="mc sel" id="mc_EP" onclick="selM('Easypaisa')"><div class="mi">💚</div>Easypaisa<div class="mnum" id="epNum">—</div></div>
+        <div class="mc" id="mc_JC" onclick="selM('JazzCash')"><div class="mi">🧡</div>JazzCash<div class="mnum" id="jcNum">—</div></div>
+      </div>
+      <div class="field"><label>Amount (PKR)</label><input type="number" id="dAmt" placeholder="100"></div>
+      <div class="field"><label>Transaction ID</label><input type="text" id="dTxn" placeholder="TXN-XXXXXXXX"></div>
+      <div class="field"><label>Sender Number</label><input type="text" id="dSend" placeholder="03XXXXXXXXX"></div>
+      <button class="btn btn-red btn-full" onclick="submitDep()">📤 SUBMIT REQUEST</button>
+      <div class="alert a-ok"  id="dOk">✅ Request submitted! Admin approval ka wait karo.</div>
+      <div class="alert a-err" id="dErr">❌ Sab fields fill karo.</div>
+    </div>
+
+    <!-- Withdraw -->
+    <div class="card" id="witSec" style="display:none">
+      <div class="ctitle">💸 WITHDRAW</div>
+      <div class="field"><label>Amount (Coins)</label><input type="number" id="wAmt" placeholder="100"></div>
+      <div class="field"><label>Account Number</label><input type="text" id="wHolder" placeholder="03XXXXXXXXX"></div>
+      <button class="btn btn-red btn-full" onclick="submitWit()">📥 SUBMIT REQUEST</button>
+      <div class="alert a-ok"  id="wOk">✅ Withdrawal request submitted!</div>
+      <div class="alert a-err" id="wErr">❌ Balance check karo ya fields fill karo.</div>
+    </div>
+
+    <!-- Transactions -->
+    <div class="card">
+      <div class="ctitle">📋 TRANSACTIONS</div>
+      <div id="txnList"><div style="text-align:center;color:var(--sub);font-size:12px;font-family:'Share Tech Mono',monospace;padding:16px">No transactions yet</div></div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="page" id="pLeaders">
+    <div class="ptitle">🏆 LEADERBOARD</div>
+    <div class="card">
+      <div id="lbList"><div style="text-align:center;color:var(--sub);padding:26px;font-family:'Share Tech Mono',monospace;font-size:12px">No players yet</div></div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="page" id="pProfile">
+    <div class="ptitle">👤 PROFILE</div>
+    <div class="phdr">
+      <div class="av">🔥</div>
+      <div class="pn" id="pN">—</div>
+      <div class="pg" id="pG">—</div>
+      <div class="pu" id="pU">—</div>
+      <div class="pstats">
+        <div class="ps"><div class="v" id="pM">0</div><div class="l">MATCHES</div></div>
+        <div class="ps"><div class="v" id="pW">0</div><div class="l">WINS</div></div>
+        <div class="ps"><div class="v" id="pK">0</div><div class="l">KILLS</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">🎮 MY MATCHES</div>
+      <div id="myM"><div style="text-align:center;color:var(--sub);font-size:12px;font-family:'Share Tech Mono',monospace;padding:14px">No matches joined yet</div></div>
+    </div>
+    <button class="btn btn-outline btn-full" onclick="doLogout()">🚪 LOGOUT</button>
+  </div>
+
+  <!-- SUPPORT -->
+  <div class="page" id="pSupport">
+    <div class="ptitle">📞 SUPPORT</div>
+    <div class="card">
+      <div class="ctitle">💬 CUSTOMER SUPPORT</div>
+      <div style="background:var(--bg3);border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:13px">
+        <div style="font-size:24px">💬</div>
+        <div>
+          <div style="font-size:10px;color:var(--sub);font-family:'Share Tech Mono',monospace;margin-bottom:3px">WHATSAPP</div>
+          <div style="font-family:'Orbitron',monospace;font-size:14px;color:var(--green)" id="supNum">Loading...</div>
+        </div>
+      </div>
+      <button class="btn btn-full" style="background:linear-gradient(135deg,#005f2e,#003d1e);color:#fff;justify-content:center" onclick="openWA()">💬 OPEN WHATSAPP</button>
+    </div>
+    <div class="card">
+      <div class="ctitle">ℹ️ APP INFO</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--sub);line-height:2.2">
+        <div>App: Free Fire Tournament v1.0</div>
+        <div id="fbInfoTxt">Firebase: Checking...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bnav">
+    <button class="nbtn active" onclick="goPage('Home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nbtn" onclick="goPage('Wallet',this)"><span class="ni">💰</span>Wallet</button>
+    <button class="nbtn" onclick="goPage('Leaders',this)"><span class="ni">🏆</span>Top</button>
+    <button class="nbtn" onclick="goPage('Profile',this)"><span class="ni">👤</span>Profile</button>
+    <button class="nbtn" onclick="goPage('Support',this)"><span class="ni">📞</span>Support</button>
+  </div>
+</div>
+
+<script>
+// ===== SAFE STORAGE =====
+const FB_KEY = 'FF_FIREBASE_CONFIG';
+
+function safeGet(key) {
+  try {
+    const v = localStorage.getItem(key);
+    if (!v) return null;
+    return JSON.parse(v);
+  } catch(e) { return null; }
+}
+
+function safeArr(key) {
+  const v = safeGet(key);
+  return Array.isArray(v) ? v : [];
+}
+
+function safeSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+}
+
+function getFbCfg() {
+  const v = safeGet(FB_KEY);
+  return (v && typeof v === 'object' && v.projectId) ? v : null;
+}
+
+// ===== STATE =====
+let CU = null; // current user
+let SEL_METHOD = 'Easypaisa';
+
+// ===== SCREENS =====
+function showScreen(id) {
+  ['scNofb','scAuth','scBan'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.className = 'screen' + (s === id ? '' : ' hide');
+  });
+}
+
+function showApp() {
+  ['scNofb','scAuth','scBan'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.className = 'screen hide';
+  });
+  document.getElementById('mainApp').style.display = 'block';
+  initApp();
+}
+
+// ===== BOOT =====
+window.addEventListener('load', function() {
+  const cfg = getFbCfg();
+  if (!cfg) { showScreen('scNofb'); return; }
+
+  // Check if already logged in
+  const saved = safeGet('FF_CU');
+  if (saved && saved.id) {
+    // Refresh from shared users
+    const users = safeArr('ff_users');
+    const fresh = users.find(function(u) { return u.id === saved.id; });
+    const user = fresh || saved;
+    if (user.banned) { showBan(user); return; }
+    CU = user;
+    showApp();
+  } else {
+    showScreen('scAuth');
+  }
+});
+
+function showBan(user) {
+  const n = localStorage.getItem('ff_settings_support') || 'Admin se contact karo';
+  document.getElementById('banNum').textContent = n;
+  showScreen('scBan');
+}
+
+// ===== AUTH =====
+function switchTab(t) {
+  document.getElementById('tabLogin').className = 'atab' + (t==='login'?' active':'');
+  document.getElementById('tabReg').className   = 'atab' + (t==='reg'?' active':'');
+  document.getElementById('fLogin').style.display = t==='login' ? 'block' : 'none';
+  document.getElementById('fReg').style.display   = t==='reg'   ? 'block' : 'none';
+}
+
+function doLogin() {
+  const email = (document.getElementById('lEmail').value || '').trim().toLowerCase();
+  const pass  = document.getElementById('lPass').value || '';
+  if (!email || !pass) { showAlert('lErr','❌ Fields fill karo.','err'); return; }
+
+  const users = safeArr('ff_users');
+  const user = users.find(function(u) { return u.email.toLowerCase() === email && u.pass === pass; });
+
+  if (!user) { showAlert('lErr','❌ Invalid email or password.','err'); return; }
+  if (user.banned) { showBan(user); return; }
+
+  CU = user;
+  safeSet('FF_CU', user);
+  showApp();
+}
+
+function doRegister() {
+  const name  = (document.getElementById('rName').value  || '').trim();
+  const game  = (document.getElementById('rGame').value  || '').trim();
+  const email = (document.getElementById('rEmail').value || '').trim().toLowerCase();
+  const pass  = document.getElementById('rPass').value || '';
+
+  if (!name || !game || !email || !pass) { showAlert('rErr','❌ Sab fields fill karo.','err'); return; }
+  if (pass.length < 6) { showAlert('rErr','❌ Password min 6 chars.','err'); return; }
+
+  const users = safeArr('ff_users');
+  if (users.find(function(u) { return u.email.toLowerCase() === email; })) {
+    showAlert('rErr','❌ Email already registered.','err'); return;
+  }
+
+  const nu = {
+    id: 'u' + Date.now(),
+    name: name, gameName: game, email: email, pass: pass,
+    uid: 'FF-' + Math.floor(100 + Math.random() * 900),
+    wallet: 0, matches: 0, wins: 0, kills: 0,
+    banned: false, joinedMatches: [], transactions: []
+  };
+
+  users.push(nu);
+  safeSet('ff_users', users);
+  document.getElementById('rOk').classList.add('show');
+
+  setTimeout(function() {
+    CU = nu;
+    safeSet('FF_CU', nu);
+    showApp();
+  }, 1300);
+}
+
+function doLogout() {
+  CU = null;
+  localStorage.removeItem('FF_CU');
+  location.reload();
+}
+
+// ===== APP INIT =====
+function initApp() {
+  updateWallet();
+  loadFbStatus();
+  renderMatches();
+  loadPayNums();
+}
+
+function updateWallet() {
+  if (!CU) return;
+  const w = CU.wallet || 0;
+  document.getElementById('wNum').textContent = w;
+  document.getElementById('bigW').textContent = w;
+}
+
+function loadFbStatus() {
+  const cfg = getFbCfg();
+  const ind = document.getElementById('fbInd');
+  if (cfg) {
+    ind.className = 'fbi on';
+    const el = document.getElementById('fbInfoTxt');
+    if (el) el.textContent = 'Firebase: ' + cfg.projectId;
+  }
+}
+
+// ===== MATCHES =====
+function renderMatches(filter) {
+  const all = safeArr('ff_shared_matches');
+  const list = (filter && filter !== 'all') ? all.filter(function(m) { return m.type === filter; }) : all;
+  const el = document.getElementById('matchList');
+  if (!list.length) {
+    el.innerHTML = '<div style="text-align:center;padding:50px 16px;color:var(--sub)"><div style="font-size:36px;margin-bottom:10px">🎮</div><div style="font-family:\'Share Tech Mono\',monospace;font-size:12px">Koi match nahi hai.<br>Admin se matches add karwao.</div></div>';
+    return;
+  }
+  el.innerHTML = list.map(function(m) {
+    const joined = Array.isArray(CU && CU.joinedMatches) && CU.joinedMatches.indexOf(m.id) !== -1;
+    const left = (m.slots || 0) - (Array.isArray(m.participants) ? m.participants.length : 0);
+    const prizeHtml = (m.prizes && Object.keys(m.prizes).length) ?
+      '<div style="margin-top:9px;padding-top:9px;border-top:1px solid #111"><div style="font-size:9px;color:var(--sub);font-family:\'Share Tech Mono\',monospace;margin-bottom:5px">🏆 PRIZES</div><div style="display:flex;flex-wrap:wrap;gap:4px">' +
+      Object.entries(m.prizes).slice(0,5).map(function(e) { return '<span class="badge by" style="font-size:9px">'+e[0]+': '+e[1]+'🪙</span>'; }).join('') +
+      '</div></div>' : '';
+    return '<div class="mcard">' +
+      '<div class="mh"><div><div style="font-family:\'Orbitron\',monospace;font-size:10px;color:var(--red);margin-bottom:4px">'+m.type.toUpperCase()+' – '+m.map+'</div><span class="badge bb">'+m.type+'</span></div>' +
+      '<span class="badge '+(left>0?'bg':'br')+'">'+(left>0?'OPEN':'FULL')+'</span></div>' +
+      '<div class="mstats">' +
+        '<div class="ms"><div class="v" style="color:var(--gold)">🪙'+m.fee+'</div><div class="l">ENTRY</div></div>' +
+        '<div class="ms"><div class="v" style="color:var(--green)">🏆'+m.prize+'</div><div class="l">PRIZE</div></div>' +
+        '<div class="ms"><div class="v">'+left+'/'+m.slots+'</div><div class="l">SLOTS</div></div>' +
+      '</div>' +
+      '<div class="mfoot"><span>📅'+m.date+' ⏰'+m.time+'</span>' +
+      (joined ? '<span class="badge bg">✅ Joined</span>' :
+        '<button class="btn btn-red btn-sm" '+(left<=0?'disabled style="opacity:.4"':'')+' onclick="joinMatch(\''+m.id+'\','+m.fee+')">JOIN</button>') +
+      '</div>' + prizeHtml + '</div>';
+  }).join('');
+}
+
+function filterM(t) { renderMatches(t); }
+
+function joinMatch(id, fee) {
+  if (!CU) return;
+  if ((CU.wallet || 0) < fee) { alert('Insufficient coins! Deposit karo.'); goPage('Wallet', null); return; }
+  CU.wallet = (CU.wallet || 0) - fee;
+  CU.matches = (CU.matches || 0) + 1;
+  if (!Array.isArray(CU.joinedMatches)) CU.joinedMatches = [];
+  CU.joinedMatches.push(id);
+
+  const matches = safeArr('ff_shared_matches');
+  const m = matches.find(function(x) { return x.id === id; });
+  if (m) {
+    if (!Array.isArray(m.participants)) m.participants = [];
+    m.participants.push({ name: CU.name, uid: CU.uid });
+    safeSet('ff_shared_matches', matches);
+  }
+  saveUser();
+  updateWallet();
+  renderMatches();
+}
+
+// ===== WALLET =====
+function showWS(t) {
+  document.getElementById('depSec').style.display = t === 'dep' ? 'block' : 'none';
+  document.getElementById('witSec').style.display = t === 'wit' ? 'block' : 'none';
+}
+
+function selM(m) {
+  SEL_METHOD = m;
+  document.getElementById('mc_EP').className = 'mc' + (m==='Easypaisa'?' sel':'');
+  document.getElementById('mc_JC').className = 'mc' + (m==='JazzCash'?' sel':'');
+}
+
+function submitDep() {
+  const amt  = document.getElementById('dAmt').value;
+  const txn  = (document.getElementById('dTxn').value || '').trim();
+  const send = (document.getElementById('dSend').value || '').trim();
+  if (!amt || !txn || !send) { document.getElementById('dErr').classList.add('show'); return; }
+
+  const req = { id: 'D'+Date.now(), user: CU.name, txnId: txn, amount: +amt, sender: send, method: SEL_METHOD, status: 'pending' };
+  const deps = safeArr('ff_deposit_requests');
+  deps.push(req);
+  safeSet('ff_deposit_requests', deps);
+
+  if (!Array.isArray(CU.transactions)) CU.transactions = [];
+  CU.transactions.unshift({ type: 'deposit', amount: +amt, status: 'pending', date: new Date().toLocaleDateString() });
+  saveUser();
+  renderTxns();
+
+  document.getElementById('dOk').classList.add('show');
+  document.getElementById('dErr').classList.remove('show');
+  ['dAmt','dTxn','dSend'].forEach(function(i) { const e=document.getElementById(i); if(e) e.value=''; });
+  setTimeout(function() { document.getElementById('dOk').classList.remove('show'); }, 4000);
+}
+
+function submitWit() {
+  const amt    = +document.getElementById('wAmt').value;
+  const holder = (document.getElementById('wHolder').value || '').trim();
+  if (!amt || !holder || (CU.wallet || 0) < amt) { document.getElementById('wErr').classList.add('show'); return; }
+
+  const req = { id: 'W'+Date.now(), user: CU.name, amount: amt, holder: holder, status: 'pending' };
+  const wits = safeArr('ff_withdraw_requests');
+  wits.push(req);
+  safeSet('ff_withdraw_requests', wits);
+
+  CU.wallet = (CU.wallet || 0) - amt;
+  if (!Array.isArray(CU.transactions)) CU.transactions = [];
+  CU.transactions.unshift({ type: 'withdraw', amount: amt, status: 'pending', date: new Date().toLocaleDateString() });
+  saveUser();
+  updateWallet();
+  renderTxns();
+
+  document.getElementById('wOk').classList.add('show');
+  ['wAmt','wHolder'].forEach(function(i) { const e=document.getElementById(i); if(e) e.value=''; });
+  setTimeout(function() { document.getElementById('wOk').classList.remove('show'); }, 4000);
+}
+
+function renderTxns() {
+  const txns = Array.isArray(CU && CU.transactions) ? CU.transactions : [];
+  const el = document.getElementById('txnList');
+  if (!txns.length) { el.innerHTML='<div style="text-align:center;color:var(--sub);font-size:12px;font-family:\'Share Tech Mono\',monospace;padding:14px">No transactions yet</div>'; return; }
+  el.innerHTML = txns.slice(0,10).map(function(t) {
+    return '<div class="txn"><div class="txnl"><div class="tico" style="background:'+(t.type==='deposit'?'rgba(0,255,136,.1)':'rgba(255,26,26,.1)'+'">')+(t.type==='deposit'?'💳':'💸')+'</div><div><div style="font-weight:700;font-size:13px;text-transform:capitalize">'+t.type+'</div><div style="font-size:10px;color:var(--sub);font-family:\'Share Tech Mono\',monospace">'+t.date+'</div></div></div><div style="text-align:right"><div style="font-family:\'Orbitron\',monospace;font-size:12px;color:'+(t.type==='deposit'?'var(--green)':'var(--red)')+'">'+( t.type==='deposit'?'+':'-')+t.amount+'</div><span class="badge by" style="font-size:9px">'+t.status+'</span></div></div>';
+  }).join('');
+}
+
+// ===== PROFILE =====
+function renderProfile() {
+  if (!CU) return;
+  // Refresh from storage
+  const users = safeArr('ff_users');
+  const fresh = users.find(function(u) { return u.id === CU.id; });
+  if (fresh) CU = fresh;
+
+  document.getElementById('pN').textContent = CU.name || '—';
+  document.getElementById('pG').textContent = CU.gameName || '—';
+  document.getElementById('pU').textContent = CU.uid || '—';
+  document.getElementById('pM').textContent = CU.matches || 0;
+  document.getElementById('pW').textContent = CU.wins || 0;
+  document.getElementById('pK').textContent = CU.kills || 0;
+  updateWallet();
+  renderMyMatches();
+  renderTxns();
+}
+
+function renderMyMatches() {
+  const el = document.getElementById('myM');
+  const joined = Array.isArray(CU && CU.joinedMatches) ? CU.joinedMatches : [];
+  if (!joined.length) { el.innerHTML='<div style="text-align:center;color:var(--sub);font-size:12px;font-family:\'Share Tech Mono\',monospace;padding:12px">No matches joined yet</div>'; return; }
+  const matches = safeArr('ff_shared_matches');
+  const my = matches.filter(function(m) { return joined.indexOf(m.id) !== -1; });
+  if (!my.length) { el.innerHTML='<div style="text-align:center;color:var(--sub);font-size:12px;padding:12px">No matches found</div>'; return; }
+  el.innerHTML = my.map(function(m) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #111"><div><div style="font-weight:700;font-size:13px">'+m.type+' – '+m.map+'</div><div style="font-family:\'Share Tech Mono\',monospace;font-size:10px;color:var(--sub)">'+m.date+' '+m.time+'</div></div><span class="badge bg">✅ Joined</span></div>';
+  }).join('');
+}
+
+// ===== LEADERBOARD =====
+function renderLeaderboard() {
+  const users = safeArr('ff_users');
+  const sorted = users.slice().sort(function(a,b) { return (b.wins||0)-(a.wins||0); });
+  const medals = ['🥇','🥈','🥉'];
+  const el = document.getElementById('lbList');
+  if (!sorted.length) { el.innerHTML='<div style="text-align:center;color:var(--sub);padding:26px;font-family:\'Share Tech Mono\',monospace;font-size:12px">No players yet</div>'; return; }
+  el.innerHTML = sorted.slice(0,20).map(function(u,i) {
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #111"><div style="min-width:26px;text-align:center;font-family:\'Orbitron\',monospace;font-size:'+(i<3?'17':'12')+'px">'+(medals[i]||'#'+(i+1))+'</div><div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#ff1a1a,#880000);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🔥</div><div style="flex:1"><div style="font-weight:700;font-size:13px">'+u.name+'</div><div style="color:var(--gold);font-size:11px">'+(u.gameName||'')+'</div></div><div style="text-align:right"><div style="font-family:\'Orbitron\',monospace;color:var(--green);font-size:12px">'+(u.wins||0)+' W</div><div style="font-size:10px;color:var(--sub)">'+(u.kills||0)+' K</div></div></div>';
+  }).join('');
+}
+
+// ===== SUPPORT =====
+function loadSupport() {
+  const n = localStorage.getItem('ff_settings_support') || 'Not set';
+  document.getElementById('supNum').textContent = n;
+}
+
+function loadPayNums() {
+  document.getElementById('epNum').textContent = localStorage.getItem('ff_settings_easypaisa') || 'Not set';
+  document.getElementById('jcNum').textContent = localStorage.getItem('ff_settings_jazzcash') || 'Not set';
+}
+
+function openWA() {
+  const n = localStorage.getItem('ff_settings_support');
+  if (n) window.open('https://wa.me/92' + n.replace(/^0/, ''), '_blank');
+  else alert('Support number not set');
+}
+
+// ===== NAVIGATION =====
+function goPage(name, btn) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nbtn').forEach(function(b) { b.classList.remove('active'); });
+  const pg = document.getElementById('p' + name);
+  if (pg) pg.classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  if (name === 'Profile')  renderProfile();
+  if (name === 'Leaders')  renderLeaderboard();
+  if (name === 'Support')  { loadSupport(); loadPayNums(); }
+  if (name === 'Wallet')   { loadPayNums(); renderTxns(); }
+}
+
+// ===== SAVE USER =====
+function saveUser() {
+  if (!CU) return;
+  safeSet('FF_CU', CU);
+  const users = safeArr('ff_users');
+  const i = users.findIndex(function(u) { return u.id === CU.id; });
+  if (i >= 0) users[i] = CU; else users.push(CU);
+  safeSet('ff_users', users);
+}
+
+// ===== HELPERS =====
+function showAlert(id, msg, type) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.textContent = msg;
+  e.className = 'alert a-' + type + ' show';
+  setTimeout(function() { e.classList.remove('show'); }, 3500);
+}
+
+// ===== STORAGE EVENTS (live sync) =====
+window.addEventListener('storage', function(e) {
+  if (e.key === FB_KEY || e.key === 'FF_TS') {
+    const cfg = getFbCfg();
+    if (!cfg) { showScreen('scNofb'); return; }
+    const ind = document.getElementById('fbInd');
+    if (ind) ind.className = 'fbi on';
+  }
+  if (e.key === 'ff_users' && CU) {
+    const users = safeArr('ff_users');
+    const fresh = users.find(function(u) { return u.id === CU.id; });
+    if (fresh && fresh.banned) { showBan(fresh); return; }
+    if (fresh) { CU = fresh; safeSet('FF_CU', CU); updateWallet(); }
+  }
+  if (e.key === 'ff_shared_matches') {
+    renderMatches();
+  }
+});
+</script>
+</body>
+</html>

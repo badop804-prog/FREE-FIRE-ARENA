@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔥 Firebase Panel</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--red:#ff1a1a;--gold:#ffd700;--bg:#050505;--bg2:#0d0d0d;--bg3:#111;--text:#fff;--sub:#777;--green:#00ff88}
+body{background:var(--bg);font-family:'Rajdhani',sans-serif;color:var(--text);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(255,26,26,.06),transparent 55%);pointer-events:none;z-index:0}
+.grid{position:fixed;inset:0;background-image:linear-gradient(rgba(255,26,26,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,26,26,.02) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:620px;margin:0 auto;padding:36px 18px 60px}
+
+/* Header */
+.hdr{text-align:center;margin-bottom:32px}
+.fire{font-size:54px;display:inline-block;animation:fl 1.5s infinite alternate}
+@keyframes fl{0%{filter:drop-shadow(0 0 8px #f60)}100%{filter:drop-shadow(0 0 22px #ff1a1a) drop-shadow(0 0 44px #f60)}}
+.hdr h1{font-family:'Orbitron',monospace;font-size:24px;font-weight:900;letter-spacing:3px;background:linear-gradient(135deg,#ff1a1a,#ffd700,#ff1a1a);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:sh 3s linear infinite;margin-top:8px}
+@keyframes sh{0%{background-position:0%}100%{background-position:200%}}
+.hdr p{color:var(--sub);font-family:'Share Tech Mono',monospace;font-size:12px;margin-top:4px}
+.chip{display:inline-block;background:linear-gradient(90deg,#ff1a1a,#880000);color:#fff;font-family:'Orbitron',monospace;font-size:10px;padding:4px 16px;border-radius:20px;letter-spacing:2px;margin-top:8px;box-shadow:0 0 14px rgba(255,26,26,.4)}
+
+/* Status */
+.sbar{background:var(--bg2);border:1px solid #1a0000;border-radius:12px;padding:13px 18px;display:flex;align-items:center;gap:12px;margin-bottom:22px;font-family:'Share Tech Mono',monospace;font-size:12px}
+.sdot{width:10px;height:10px;border-radius:50%;background:#333;flex-shrink:0;transition:.3s}
+.sdot.on{background:var(--green);box-shadow:0 0 10px var(--green);animation:pu 2s infinite}
+.sdot.err{background:var(--red);box-shadow:0 0 8px var(--red)}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.4}}
+#smsg{color:var(--sub);flex:1;line-height:1.5}
+
+/* Info */
+.info{background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.15);border-radius:10px;padding:13px 17px;margin-bottom:20px;font-size:13px;color:#ccc;line-height:1.8}
+.info strong{color:var(--gold)}
+
+/* Card */
+.card{background:var(--bg2);border:1px solid #1a0000;border-radius:15px;padding:24px;margin-bottom:18px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ff1a1a,transparent)}
+.ctitle{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--red);letter-spacing:2px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
+
+/* Connection visual */
+.cgrid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin:12px 0}
+.pbox{background:var(--bg3);border-radius:12px;padding:15px;text-align:center;border:2px solid #1a1a1a;transition:.4s}
+.pbox.on{border-color:rgba(0,255,136,.4);background:rgba(0,255,136,.03)}
+.pbox .pi{font-size:26px;margin-bottom:5px}
+.pbox .pl{font-family:'Orbitron',monospace;font-size:10px;color:var(--sub);letter-spacing:1.5px}
+.pbox .ps{font-size:11px;margin-top:4px;font-family:'Share Tech Mono',monospace;color:var(--sub)}
+.cline{text-align:center;font-size:22px;color:#222;padding:0 10px;transition:.4s}
+
+/* Form */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:10px;font-weight:600;color:var(--sub);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;font-family:'Share Tech Mono',monospace}
+.field input{width:100%;background:var(--bg3);border:1px solid #1a1a1a;border-radius:8px;padding:10px 13px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;outline:none;transition:.3s}
+.field input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(255,26,26,.08)}
+.field input.ok{border-color:#1a3a1a;color:var(--green)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+
+/* Buttons */
+.btn{padding:12px 20px;border:none;border-radius:8px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;transition:.25s;display:inline-flex;align-items:center;gap:7px}
+.btn-red{background:linear-gradient(135deg,#ff1a1a,#880000);color:#fff;box-shadow:0 4px 16px rgba(255,26,26,.28)}
+.btn-red:hover{transform:translateY(-2px);box-shadow:0 7px 24px rgba(255,26,26,.42)}
+.btn-red:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;border:1px solid #333;color:#666;font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:.4px}
+.btn-ghost:hover{border-color:var(--red);color:var(--red)}
+.btn-full{width:100%;justify-content:center;margin-top:6px}
+.rbtn{background:rgba(255,26,26,.1);border:1px solid rgba(255,26,26,.3);color:#ff6666;padding:4px 13px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Share Tech Mono',monospace;transition:.2s}
+.rbtn:hover{background:rgba(255,26,26,.2)}
+
+/* Alerts */
+.alert{padding:11px 15px;border-radius:8px;font-size:13px;display:none;align-items:center;gap:8px;margin:10px 0}
+.alert.show{display:flex;animation:fu .3s ease}
+@keyframes fu{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.a-ok{background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.25);color:var(--green)}
+.a-err{background:rgba(255,26,26,.07);border:1px solid rgba(255,26,26,.25);color:#ff6666}
+.a-inf{background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.25);color:var(--gold)}
+
+/* Saved rows */
+.srow{display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border:1px solid #111;border-radius:8px;padding:10px 13px;margin-bottom:8px;font-family:'Share Tech Mono',monospace;font-size:12px}
+.sk{color:var(--sub);min-width:130px}
+.sv{color:var(--green);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%;text-align:right}
+
+/* Steps */
+.steps{list-style:none}
+.steps li{display:flex;gap:11px;padding:10px 0;border-bottom:1px solid #111;font-size:13px;color:#bbb;line-height:1.55}
+.steps li:last-child{border-bottom:none}
+.sn{min-width:24px;height:24px;background:linear-gradient(135deg,#ff1a1a,#880000);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;flex-shrink:0}
+.ld{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+
+  <div class="hdr">
+    <span class="fire">🔥</span>
+    <h1>FIREBASE PANEL</h1>
+    <p>FREE FIRE TOURNAMENT — CENTRAL FIREBASE CONTROL</p>
+    <span class="chip">MASTER CONTROL</span>
+  </div>
+
+  <div class="sbar">
+    <div class="sdot" id="sdot"></div>
+    <div id="smsg">Firebase config nahi hai. Neeche se add karo.</div>
+  </div>
+
+  <div class="info">
+    <strong>⚡ Sirf yahan se Firebase add/remove karo.</strong><br>
+    User Panel aur Admin Panel dono <strong>automatically</strong> yahan ki config use karte hain — un panels me koi alag Firebase option nahi.<br>
+    Yahan save karo → <strong style="color:var(--green)">dono panels fauran connect ho jayenge.</strong>
+  </div>
+
+  <!-- Connection Status -->
+  <div class="card">
+    <div class="ctitle">🔗 PANELS CONNECTION STATUS</div>
+    <div class="cgrid">
+      <div class="pbox" id="ubox"><div class="pi">👤</div><div class="pl">USER PANEL</div><div class="ps" id="ust">Not connected</div></div>
+      <div class="cline" id="cline">⟷</div>
+      <div class="pbox" id="abox"><div class="pi">🛡</div><div class="pl">ADMIN PANEL</div><div class="ps" id="ast">Not connected</div></div>
+    </div>
+    <div id="cmsg" style="text-align:center;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--sub);margin-top:14px">Firebase add karo to panels connect honge</div>
+  </div>
+
+  <!-- Form -->
+  <div class="card" id="formCard">
+    <div class="ctitle">➕ ADD FIREBASE CONFIG <span style="font-size:10px;color:var(--sub);font-weight:400;letter-spacing:0;font-family:'Share Tech Mono',monospace">One config → Both panels</span></div>
+    <div class="field"><label>API Key</label><input type="text" id="f0" placeholder="AIzaSy..." oninput="markOk(this)"></div>
+    <div class="g2">
+      <div class="field"><label>Auth Domain</label><input type="text" id="f1" placeholder="project.firebaseapp.com" oninput="markOk(this)"></div>
+      <div class="field"><label>Project ID</label><input type="text" id="f2" placeholder="my-project-id" oninput="markOk(this)"></div>
+    </div>
+    <div class="field"><label>Database URL</label><input type="text" id="f3" placeholder="https://project-rtdb.firebaseio.com" oninput="markOk(this)"></div>
+    <div class="g2">
+      <div class="field"><label>Storage Bucket</label><input type="text" id="f4" placeholder="project.appspot.com" oninput="markOk(this)"></div>
+      <div class="field"><label>Messaging Sender ID</label><input type="text" id="f5" placeholder="123456789" oninput="markOk(this)"></div>
+    </div>
+    <div class="field"><label>App ID</label><input type="text" id="f6" placeholder="1:123456789:web:abc123" oninput="markOk(this)"></div>
+    <button class="btn btn-red btn-full" id="savebtn" onclick="saveConfig()">✅ SAVE &amp; CONNECT BOTH PANELS</button>
+    <div class="alert a-err" id="aerr">❌ Sab fields fill karo.</div>
+    <div class="alert a-ok"  id="aok">✅ Firebase saved! User Panel + Admin Panel dono connect ho gaye.</div>
+  </div>
+
+  <!-- Saved -->
+  <div class="card" id="savedCard" style="display:none">
+    <div class="ctitle">📦 ACTIVE FIREBASE CONFIG <button class="rbtn" onclick="askRemove()">🗑 REMOVE</button></div>
+    <div id="savedRows"></div>
+    <div class="alert a-inf show" style="margin-top:12px;display:flex">⚡ Yeh config User Panel aur Admin Panel dono use kar rahe hain.</div>
+  </div>
+
+  <!-- Confirm remove -->
+  <div class="card" id="removeCard" style="display:none;border-color:rgba(255,26,26,.35)">
+    <div class="ctitle" style="color:#ff6666">⚠️ REMOVE CONFIRM</div>
+    <p style="color:#bbb;font-size:14px;line-height:1.7;margin-bottom:18px">Firebase remove karne se <strong style="color:var(--red)">dono panels disconnect</strong> ho jayenge.</p>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-red" onclick="confirmRemove()">🗑 HAN, REMOVE</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('removeCard').style.display='none'">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Guide -->
+  <div class="card">
+    <div class="ctitle">📖 SETUP GUIDE</div>
+    <ul class="steps">
+      <li><span class="sn">1</span><span><strong style="color:#fff">console.firebase.google.com</strong> pe jao → naya project banao → Realtime Database enable karo.</span></li>
+      <li><span class="sn">2</span><span>Project Settings → Your Apps → Web App add karo → <strong style="color:var(--gold)">firebaseConfig</strong> copy karo.</span></li>
+      <li><span class="sn">3</span><span>Upar form me sab values paste karo aur <strong style="color:var(--green)">"Save & Connect"</strong> dabao.</span></li>
+      <li><span class="sn">4</span><span><strong style="color:var(--green)">Done!</strong> User Panel aur Admin Panel dono automatically connect ho jayenge.</span></li>
+      <li><span class="sn">5</span><span>Remove karna ho to <strong style="color:#ff6666">"Remove"</strong> dabao — dono disconnect ho jayenge.</span></li>
+    </ul>
+  </div>
+
+</div>
+<script>
+const KEY = 'FF_FIREBASE_CONFIG';
+const KEYS = ['apiKey','authDomain','projectId','databaseURL','storageBucket','messagingSenderId','appId'];
+const LABS = {apiKey:'API Key',authDomain:'Auth Domain',projectId:'Project ID',databaseURL:'Database URL',storageBucket:'Storage Bucket',messagingSenderId:'Sender ID',appId:'App ID'};
+
+function markOk(el){el.classList.toggle('ok',el.value.trim().length>0)}
+
+function saveConfig(){
+  const cfg={};
+  let ok=true;
+  KEYS.forEach((k,i)=>{const v=document.getElementById('f'+i)?.value.trim();if(!v)ok=false;cfg[k]=v||''});
+  if(!ok){sh('aerr');return}
+  const btn=document.getElementById('savebtn');
+  btn.innerHTML='<span class="ld"></span> Connecting...';btn.disabled=true;
+  setTimeout(()=>{
+    localStorage.setItem(KEY,JSON.stringify(cfg));
+    localStorage.setItem('FF_TS',Date.now()+'');
+    btn.innerHTML='✅ SAVE & CONNECT BOTH PANELS';btn.disabled=false;
+    hi('aerr');sh('aok');setTimeout(()=>hi('aok'),4000);
+    showSaved(cfg);setStatus(cfg);
+    document.getElementById('formCard').style.display='none';
+  },800);
+}
+
+function showSaved(cfg){
+  document.getElementById('savedCard').style.display='block';
+  document.getElementById('savedRows').innerHTML=KEYS.map(k=>`<div class="srow"><span class="sk">${LABS[k]}</span><span class="sv">${cfg[k]||'—'}</span></div>`).join('');
+}
+
+function askRemove(){document.getElementById('removeCard').style.display='block';document.getElementById('removeCard').scrollIntoView({behavior:'smooth',block:'center'})}
+
+function confirmRemove(){
+  localStorage.removeItem(KEY);
+  localStorage.setItem('FF_TS',Date.now()+'');
+  document.getElementById('savedCard').style.display='none';
+  document.getElementById('removeCard').style.display='none';
+  document.getElementById('formCard').style.display='block';
+  KEYS.forEach((_,i)=>{const e=document.getElementById('f'+i);if(e){e.value='';e.classList.remove('ok')}});
+  setStatus(null);
+  const a=document.createElement('div');a.className='alert a-inf show';a.textContent='🗑 Firebase removed. Dono panels disconnect hain.';
+  document.getElementById('formCard').appendChild(a);setTimeout(()=>a.remove(),4000);
+}
+
+function setStatus(cfg){
+  const dot=document.getElementById('sdot'),msg=document.getElementById('smsg');
+  const ub=document.getElementById('ubox'),ab=document.getElementById('abox');
+  const us=document.getElementById('ust'),as_=document.getElementById('ast');
+  const cl=document.getElementById('cline'),cm=document.getElementById('cmsg');
+  if(cfg&&cfg.projectId){
+    dot.className='sdot on';
+    msg.innerHTML=`<span style="color:#fff">✅ CONNECTED</span> — <span style="color:var(--green)">${cfg.projectId}</span>`;
+    ub.classList.add('on');ab.classList.add('on');
+    us.style.color='var(--green)';us.textContent='✅ Connected';
+    as_.style.color='var(--green)';as_.textContent='✅ Connected';
+    cl.style.color='var(--green)';
+    cm.style.color='var(--green)';cm.textContent='🔗 Both panels connected — '+cfg.projectId;
+  }else{
+    dot.className='sdot err';
+    msg.innerHTML='<span style="color:#ff6666">❌ Disconnected</span> — Naya Firebase config add karo.';
+    ub.classList.remove('on');ab.classList.remove('on');
+    us.style.color='var(--sub)';us.textContent='Not connected';
+    as_.style.color='var(--sub)';as_.textContent='Not connected';
+    cl.style.color='#222';
+    cm.style.color='var(--sub)';cm.textContent='Firebase add karo to panels connect honge';
+  }
+}
+
+function sh(id){const e=document.getElementById(id);if(e)e.classList.add('show')}
+function hi(id){const e=document.getElementById(id);if(e)e.classList.remove('show')}
+
+(function boot(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(!raw)return setStatus(null);
+    const cfg=JSON.parse(raw);
+    if(!cfg||typeof cfg!=='object')return setStatus(null);
+    KEYS.forEach((k,i)=>{const e=document.getElementById('f'+i);if(e&&cfg[k]){e.value=cfg[k];e.classList.add('ok')}});
+    showSaved(cfg);setStatus(cfg);
+    document.getElementById('formCard').style.display='none';
+  }catch(e){setStatus(null)}
+})();
+
+window.addEventListener('storage',e=>{
+  if(e.key===KEY||e.key==='FF_TS'){
+    try{const c=localStorage.getItem(KEY);setStatus(c?JSON.parse(c):null)}catch(x){setStatus(null)}
+  }
+});
+</script>
+</body>
+</html>
